@@ -174,7 +174,6 @@ extern bool aqo_show_hash;
 extern bool aqo_show_details;
 extern int aqo_join_threshold;
 extern bool use_wide_search;
-extern bool aqo_learn_statement_timeout;
 
 /* Parameters for current query */
 typedef struct QueryContextData
@@ -257,8 +256,10 @@ int get_clause_hash(Expr *clause, int nargs, int *args_hash, int *eclass_hash);
 
 
 /* Storage interaction */
-extern bool load_fss_ext(uint64 fs, int fss, OkNNrdata *data, List **reloids);
-extern bool update_fss_ext(uint64 fs, int fss, OkNNrdata *data, List *reloids);
+extern bool load_fss_ext(uint64 fs, int fss, OkNNrdata *data, List **reloids,
+						 bool isSafe);
+extern bool update_fss_ext(uint64 fs, int fss, OkNNrdata *data,
+						   List *reloids, bool isTimedOut);
 
 /* Query preprocessing hooks */
 extern void print_into_explain(PlannedStmt *plannedstmt, IntoClause *into,

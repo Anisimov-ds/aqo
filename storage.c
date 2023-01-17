@@ -27,6 +27,7 @@
 #include "aqo_shared.h"
 #include "machine_learning.h"
 #include "preprocessing.h"
+#include "learn_cache.h"
 #include "storage.h"
 
 
@@ -106,15 +107,25 @@ PG_FUNCTION_INFO_V1(aqo_execution_time);
 
 
 bool
-load_fss_ext(uint64 fs, int fss, OkNNrdata *data, List **reloids)
+load_fss_ext(uint64 fs, int fss, OkNNrdata *data, List **reloids, bool isSafe)
 {
-	return load_aqo_data(fs, fss, data, reloids, false);
+	if (isSafe && (!aqo_learn_statement_timeout || !lc_has_fss(fs, fss)))
+		return load_aqo_data(fs, fss, data, reloids, false);
+	else
+	{
+		Assert(aqo_learn_statement_timeout);
+		return lc_load_fss(fs, fss, data, reloids);
+	}
 }
 
 bool
-update_fss_ext(uint64 fs, int fss, OkNNrdata *data, List *reloids)
+update_fss_ext(uint64 fs, int fss, OkNNrdata *data, List *reloids,
+			   bool isTimedOut)
 {
-	return aqo_data_store(fs, fss, data, reloids);
+	if (!isTimedOut)
+		return aqo_data_store(fs, fss, data, reloids);
+	else
+		return lc_update_fss(fs, fss, data, reloids);
 }
 
 /*
